@@ -1,0 +1,1004 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Moat — MoQ Auth Token Service",
+    "description": "Authentication, room management, and scoped token minting for Media over QUIC (MoQ) relays.",
+    "license": {
+      "name": "BSD-2-Clause"
+    },
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/v1/auth/google": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "operationId": "google_login",
+        "responses": {
+          "200": {
+            "description": "Google OAuth session created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or missing Bearer token"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/auth/guest": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "operationId": "guest_login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GuestLoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Guest session created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid display name"
+          }
+        }
+      }
+    },
+    "/v1/auth/privacypass/challenge": {
+      "post": {
+        "tags": [
+          "privacypass"
+        ],
+        "operationId": "challenge",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChallengeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Privacy Pass challenge issued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChallengeResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/privacypass/token-request": {
+      "post": {
+        "tags": [
+          "privacypass"
+        ],
+        "operationId": "token_request_proxy",
+        "requestBody": {
+          "content": {
+            "application/private-token-request": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Token response from issuer (binary)",
+            "content": {
+              "application/private-token-response": {}
+            }
+          }
+        }
+      }
+    },
+    "/v1/invites/{code}/redeem": {
+      "post": {
+        "tags": [
+          "invites"
+        ],
+        "operationId": "redeem_invite",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "description": "Invite code",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invite redeemed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RedeemResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Invite expired or max uses reached"
+          },
+          "404": {
+            "description": "Invite not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/rooms": {
+      "get": {
+        "tags": [
+          "rooms"
+        ],
+        "operationId": "list_rooms",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of rooms to return (default 100, max 1000).",
+            "required": false,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Offset for pagination.",
+            "required": false,
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of rooms",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Room"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "rooms"
+        ],
+        "operationId": "create_room",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRoomRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Room created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Room"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid room name or namespace"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/rooms/{room_id}": {
+      "get": {
+        "tags": [
+          "rooms"
+        ],
+        "operationId": "get_room",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "description": "Room UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Room details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Room"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Room not found"
+          }
+        }
+      }
+    },
+    "/v1/rooms/{room_id}/invites": {
+      "post": {
+        "tags": [
+          "invites"
+        ],
+        "operationId": "create_invite",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "description": "Room UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInviteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Invite created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Not a room member"
+          },
+          "404": {
+            "description": "Room not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/rooms/{room_id}/members": {
+      "get": {
+        "tags": [
+          "rooms"
+        ],
+        "operationId": "list_members",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "description": "Room UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of members",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RoomMember"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "rooms"
+        ],
+        "operationId": "add_member",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "description": "Room UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddMemberRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Member added",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomMember"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Room not found"
+          }
+        }
+      }
+    },
+    "/v1/rooms/{room_id}/members/{user_id}": {
+      "delete": {
+        "tags": [
+          "rooms"
+        ],
+        "operationId": "remove_member",
+        "parameters": [
+          {
+            "name": "room_id",
+            "in": "path",
+            "description": "Room UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "path",
+            "description": "User UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Member removed"
+          },
+          "404": {
+            "description": "Member not found"
+          }
+        }
+      }
+    },
+    "/v1/token": {
+      "post": {
+        "tags": [
+          "token"
+        ],
+        "operationId": "mint_token",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MintTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Token minted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MintTokenResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          },
+          "404": {
+            "description": "Room not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/token/anonymous": {
+      "post": {
+        "tags": [
+          "token"
+        ],
+        "operationId": "mint_anonymous",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnonTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Anonymous token minted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnonTokenResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Room does not allow anonymous access"
+          },
+          "404": {
+            "description": "Room not found"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AddMemberRequest": {
+        "type": "object",
+        "required": [
+          "user_id",
+          "role"
+        ],
+        "properties": {
+          "role": {
+            "$ref": "#/components/schemas/MemberRole"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "AnonTokenRequest": {
+        "type": "object",
+        "required": [
+          "room_id"
+        ],
+        "properties": {
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "room_id": {
+            "type": "string",
+            "description": "Room ID (UUID) or room name"
+          }
+        }
+      },
+      "AnonTokenResponse": {
+        "type": "object",
+        "required": [
+          "token",
+          "expires_at",
+          "scopes",
+          "dpop"
+        ],
+        "properties": {
+          "dpop": {
+            "type": "boolean"
+          },
+          "expires_at": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AnonTokenScope"
+            }
+          },
+          "token": {
+            "type": "string"
+          }
+        }
+      },
+      "AnonTokenScope": {
+        "type": "object",
+        "required": [
+          "actions",
+          "namespace"
+        ],
+        "properties": {
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "namespace": {
+            "type": "string"
+          }
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "required": [
+          "user_id",
+          "email",
+          "provider",
+          "session_token"
+        ],
+        "properties": {
+          "display_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "email": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "session_token": {
+            "type": "string"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "ChallengeRequest": {
+        "type": "object",
+        "properties": {
+          "room_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "token_type": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32",
+            "description": "Token type: 0x0002 (Blind RSA) or 0xda7a (Partially Blind RSA)",
+            "minimum": 0
+          }
+        }
+      },
+      "ChallengeResponse": {
+        "type": "object",
+        "required": [
+          "token_type",
+          "token_challenge",
+          "issuer_key"
+        ],
+        "properties": {
+          "extensions": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Base64url-encoded extensions (PBRS only)"
+          },
+          "issuer_key": {
+            "type": "string",
+            "description": "Base64url-encoded issuer public key"
+          },
+          "token_challenge": {
+            "type": "string",
+            "description": "Base64url-encoded TokenChallenge (RFC 9578)"
+          },
+          "token_type": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          }
+        }
+      },
+      "CreateInviteRequest": {
+        "type": "object",
+        "properties": {
+          "expires_in_hours": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64",
+            "minimum": 0
+          },
+          "max_uses": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          }
+        }
+      },
+      "CreateRoomRequest": {
+        "type": "object",
+        "required": [
+          "name",
+          "namespace_prefix"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "namespace_prefix": {
+            "type": "string"
+          },
+          "visibility": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/RoomVisibility"
+              }
+            ]
+          }
+        }
+      },
+      "GuestLoginRequest": {
+        "type": "object",
+        "required": [
+          "display_name"
+        ],
+        "properties": {
+          "display_name": {
+            "type": "string"
+          }
+        }
+      },
+      "InviteResponse": {
+        "type": "object",
+        "required": [
+          "code",
+          "url",
+          "room_name"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "expires_at": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          },
+          "max_uses": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "room_name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        }
+      },
+      "MemberRole": {
+        "type": "string",
+        "enum": [
+          "admin",
+          "publisher",
+          "subscriber"
+        ]
+      },
+      "MintTokenRequest": {
+        "type": "object",
+        "required": [
+          "room_id"
+        ],
+        "properties": {
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "room_id": {
+            "type": "string"
+          }
+        }
+      },
+      "MintTokenResponse": {
+        "type": "object",
+        "required": [
+          "token",
+          "expires_at",
+          "scopes",
+          "dpop"
+        ],
+        "properties": {
+          "dpop": {
+            "type": "boolean"
+          },
+          "expires_at": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MintTokenScope"
+            }
+          },
+          "token": {
+            "type": "string"
+          }
+        }
+      },
+      "MintTokenScope": {
+        "type": "object",
+        "required": [
+          "actions",
+          "namespace"
+        ],
+        "properties": {
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "namespace": {
+            "type": "string"
+          }
+        }
+      },
+      "RedeemResponse": {
+        "type": "object",
+        "required": [
+          "room_id",
+          "room_name",
+          "joined"
+        ],
+        "properties": {
+          "joined": {
+            "type": "boolean"
+          },
+          "room_id": {
+            "type": "string"
+          },
+          "room_name": {
+            "type": "string"
+          }
+        }
+      },
+      "Room": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "namespace_prefix",
+          "visibility",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "namespace_prefix": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/RoomVisibility"
+          }
+        }
+      },
+      "RoomMember": {
+        "type": "object",
+        "required": [
+          "id",
+          "room_id",
+          "user_id",
+          "role",
+          "added_at"
+        ],
+        "properties": {
+          "added_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "role": {
+            "$ref": "#/components/schemas/MemberRole"
+          },
+          "room_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "RoomVisibility": {
+        "type": "string",
+        "enum": [
+          "public",
+          "authenticated",
+          "private"
+        ]
+      },
+      "TokenRole": {
+        "type": "string",
+        "enum": [
+          "publisher",
+          "subscriber",
+          "pubsub"
+        ]
+      }
+    },
+    "securitySchemes": {
+      "bearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "auth",
+      "description": "Authentication (guest login, Google OAuth)"
+    },
+    {
+      "name": "token",
+      "description": "Scoped MoQ access token minting"
+    },
+    {
+      "name": "rooms",
+      "description": "Room CRUD and membership management"
+    },
+    {
+      "name": "invites",
+      "description": "Invite link creation and redemption"
+    },
+    {
+      "name": "privacypass",
+      "description": "Privacy Pass challenge and token issuance (RFC 9578)"
+    }
+  ]
+}

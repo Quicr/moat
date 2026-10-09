@@ -1,0 +1,67 @@
+use std::path::PathBuf;
+
+use clap::Parser;
+
+#[derive(Parser, Clone, Debug)]
+#[command(name = "moat", about = "Moat — MoQ Auth Token service")]
+pub struct Config {
+    /// Address to bind the HTTP server.
+    #[arg(long, env = "MOAT_BIND", default_value = "0.0.0.0:3200")]
+    pub bind: String,
+
+    /// PostgreSQL connection URL.
+    #[arg(long, env = "MOAT_DATABASE_URL")]
+    pub database_url: String,
+
+    /// Google OAuth2 Client ID for IdP verification.
+    #[arg(long, env = "MOAT_GOOGLE_CLIENT_ID")]
+    pub google_client_id: Option<String>,
+
+    /// Path to ES256 private key PEM for C4M token signing.
+    #[arg(long, env = "MOAT_C4M_PRIVATE_KEY")]
+    pub c4m_private_key: Option<PathBuf>,
+
+    /// Issuer claim for minted C4M tokens.
+    #[arg(long, env = "MOAT_C4M_ISSUER", default_value = "moat")]
+    pub c4m_issuer: String,
+
+    /// Audience claim for minted C4M tokens.
+    #[arg(long, env = "MOAT_C4M_AUDIENCE", default_value = "moq-relay")]
+    pub c4m_audience: String,
+
+    /// Default token lifetime in seconds.
+    #[arg(long, env = "MOAT_TOKEN_LIFETIME", default_value = "3600")]
+    pub token_lifetime_secs: u64,
+
+    /// Secret for signing session tokens (HMAC-SHA256). Generate with: openssl rand -hex 32
+    #[arg(long, env = "MOAT_SESSION_SECRET")]
+    pub session_secret: String,
+
+    /// Base URL for generating invite links (e.g. https://chat.mocha-net.dev)
+    #[arg(long, env = "MOAT_BASE_URL", default_value = "https://chat.mocha-net.dev")]
+    pub base_url: String,
+
+    /// Privacy Pass issuer name (for TokenChallenge construction).
+    #[arg(long, env = "MOAT_PP_ISSUER_NAME", default_value = "pat.issuer.mocha-net.dev")]
+    pub pp_issuer_name: String,
+
+    /// Privacy Pass issuer directory URL (to fetch public keys).
+    #[arg(long, env = "MOAT_PP_ISSUER_URL", default_value = "https://pat.issuer.mocha-net.dev")]
+    pub pp_issuer_url: String,
+
+    /// Privacy Pass origin name (relay hostname for challenge scope).
+    #[arg(long, env = "MOAT_PP_ORIGIN_NAME", default_value = "relay.mocha-net.dev")]
+    pub pp_origin_name: String,
+
+    /// Path to Ed25519 private key PEM for signing token requests to the issuer (RFC 9421).
+    #[arg(long, env = "MOAT_PP_SIGNING_KEY")]
+    pub pp_signing_key: Option<PathBuf>,
+
+    /// Maximum database connection pool size.
+    #[arg(long, env = "MOAT_DB_MAX_CONNECTIONS", default_value = "20")]
+    pub db_max_connections: u32,
+
+    /// Comma-separated list of allowed CORS origins. If unset, defaults to base_url.
+    #[arg(long, env = "MOAT_CORS_ORIGINS")]
+    pub cors_origins: Option<String>,
+}
