@@ -9,8 +9,8 @@ use std::sync::Arc;
 
 use axum::routing::{get, post};
 use axum::Router;
-use tower::ServiceBuilder;
 use tower::limit::ConcurrencyLimitLayer;
+use tower::ServiceBuilder;
 
 use crate::AppState;
 
@@ -26,8 +26,14 @@ pub fn router() -> Router<Arc<AppState>> {
         .route("/v1/token/anonymous", post(token::mint_anonymous))
         .layer(auth_limit)
         // Privacy Pass
-        .route("/v1/auth/privacypass/challenge", post(privacypass::challenge))
-        .route("/v1/auth/privacypass/token-request", post(privacypass::token_request_proxy))
+        .route(
+            "/v1/auth/privacypass/challenge",
+            post(privacypass::challenge),
+        )
+        .route(
+            "/v1/auth/privacypass/token-request",
+            post(privacypass::token_request_proxy),
+        )
         // Token minting
         .route("/v1/token", post(token::mint_token))
         // Room management
@@ -42,10 +48,7 @@ pub fn router() -> Router<Arc<AppState>> {
             axum::routing::delete(rooms::remove_member),
         )
         // Invites
-        .route(
-            "/v1/rooms/:room_id/invites",
-            post(invites::create_invite),
-        )
+        .route("/v1/rooms/:room_id/invites", post(invites::create_invite))
         // Landing page
         .route("/", get(web::landing))
         // Web UI (dashboard)

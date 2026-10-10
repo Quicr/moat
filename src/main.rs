@@ -84,10 +84,7 @@ async fn main() -> anyhow::Result<()> {
     let app = Router::new()
         .merge(routes::router())
         .with_state(state)
-        .merge(
-            SwaggerUi::new("/docs/{tail}")
-                .url("/api-doc/openapi.json", ApiDoc::spec()),
-        )
+        .merge(SwaggerUi::new("/docs/{tail}").url("/api-doc/openapi.json", ApiDoc::spec()))
         .layer(cors)
         .layer(TraceLayer::new_for_http());
 
@@ -99,10 +96,7 @@ async fn main() -> anyhow::Result<()> {
 }
 
 fn build_cors_layer(config: &Config) -> anyhow::Result<CorsLayer> {
-    let origins_str = config
-        .cors_origins
-        .as_deref()
-        .unwrap_or(&config.base_url);
+    let origins_str = config.cors_origins.as_deref().unwrap_or(&config.base_url);
 
     let origins: Vec<HeaderValue> = origins_str
         .split(',')

@@ -62,9 +62,9 @@ impl TokenMinter for C4mMinter {
         let mut moqt_scopes: Vec<Value> = Vec::with_capacity(3);
 
         // Scope 0: ClientSetup (action 0 — no namespace constraint)
-        moqt_scopes.push(Value::Array(vec![
-            Value::Array(vec![Value::Integer(0.into())]),
-        ]));
+        moqt_scopes.push(Value::Array(vec![Value::Array(vec![Value::Integer(
+            0.into(),
+        )])]));
 
         // Publisher scope: actions [2 (PublishNamespace), 6 (Publish)]
         if matches!(request.role, TokenRole::Publisher | TokenRole::PubSub) {
@@ -84,8 +84,12 @@ impl TokenMinter for C4mMinter {
             .expires_in(lifetime as i64)
             .build();
 
-        let token_string =
-            encode_cose_sign1(&token, &self.signing_key, &self.raw_signing_key, &moqt_scopes)?;
+        let token_string = encode_cose_sign1(
+            &token,
+            &self.signing_key,
+            &self.raw_signing_key,
+            &moqt_scopes,
+        )?;
 
         Ok(MintedToken {
             token: token_string,
@@ -93,7 +97,6 @@ impl TokenMinter for C4mMinter {
             expires_in: lifetime,
         })
     }
-
 }
 
 /// Build a scope entry: [[actions...], [ns_prefix_match], track_match]
@@ -312,15 +315,13 @@ mod tests {
         let ns = canonical_namespace(&[b"x"]);
         let scope = build_scope(&[0], &ns);
         match scope {
-            Value::Array(items) => {
-                match &items[0] {
-                    Value::Array(actions) => {
-                        assert_eq!(actions.len(), 1);
-                        assert_eq!(actions[0], Value::Integer(0.into()));
-                    }
-                    other => panic!("expected actions array, got {:?}", other),
+            Value::Array(items) => match &items[0] {
+                Value::Array(actions) => {
+                    assert_eq!(actions.len(), 1);
+                    assert_eq!(actions[0], Value::Integer(0.into()));
                 }
-            }
+                other => panic!("expected actions array, got {:?}", other),
+            },
             other => panic!("expected array, got {:?}", other),
         }
     }
@@ -330,17 +331,15 @@ mod tests {
         let ns = canonical_namespace(&[b"room", b"123"]);
         let scope = build_scope(&[3, 4, 7], &ns);
         match scope {
-            Value::Array(items) => {
-                match &items[0] {
-                    Value::Array(actions) => {
-                        assert_eq!(actions.len(), 3);
-                        assert_eq!(actions[0], Value::Integer(3.into()));
-                        assert_eq!(actions[1], Value::Integer(4.into()));
-                        assert_eq!(actions[2], Value::Integer(7.into()));
-                    }
-                    other => panic!("expected actions array, got {:?}", other),
+            Value::Array(items) => match &items[0] {
+                Value::Array(actions) => {
+                    assert_eq!(actions.len(), 3);
+                    assert_eq!(actions[0], Value::Integer(3.into()));
+                    assert_eq!(actions[1], Value::Integer(4.into()));
+                    assert_eq!(actions[2], Value::Integer(7.into()));
                 }
-            }
+                other => panic!("expected actions array, got {:?}", other),
+            },
             other => panic!("expected array, got {:?}", other),
         }
     }
@@ -374,7 +373,10 @@ mod tests {
                 let has_moqt = entries.iter().any(|(k, v)| {
                     *k == Value::Integer(CLAIM_MOQT.into()) && matches!(v, Value::Bytes(_))
                 });
-                assert!(has_moqt, "payload should contain MoQT scopes at key {CLAIM_MOQT}");
+                assert!(
+                    has_moqt,
+                    "payload should contain MoQT scopes at key {CLAIM_MOQT}"
+                );
             }
             other => panic!("expected CBOR map, got {:?}", other),
         }
@@ -397,17 +399,18 @@ mod tests {
         let cwt = Cwt::new(alg.algorithm_id(), token);
 
         let ns = canonical_namespace(&[b"test", b"ns"]);
-        let scopes = vec![
-            build_scope(&[2, 6], &ns),
-            build_scope(&[3, 4, 7], &ns),
-        ];
+        let scopes = vec![build_scope(&[2, 6], &ns), build_scope(&[3, 4, 7], &ns)];
         let payload_bytes = build_payload(&cwt, &scopes).unwrap();
 
         let payload: Value = ciborium::de::from_reader(&payload_bytes[..]).unwrap();
-        let map = match payload { Value::Map(m) => m, _ => panic!("not a map") };
+        let map = match payload {
+            Value::Map(m) => m,
+            _ => panic!("not a map"),
+        };
 
         // Extract the bstr-wrapped scopes and decode them
-        let (_, scope_val) = map.iter()
+        let (_, scope_val) = map
+            .iter()
             .find(|(k, _)| *k == Value::Integer(CLAIM_MOQT.into()))
             .expect("missing MOQT claim");
 
@@ -429,21 +432,26 @@ mod tests {
     fn generate_test_key_pem() -> String {
         use p256::pkcs8::EncodePrivateKey;
         let sk = SigningKey::random(&mut p256::elliptic_curve::rand_core::OsRng);
-        sk.to_pkcs8_pem(p256::pkcs8::LineEnding::LF).unwrap().to_string()
+        sk.to_pkcs8_pem(p256::pkcs8::LineEnding::LF)
+            .unwrap()
+            .to_string()
     }
 
     #[test]
     fn c4m_minter_mint_publisher() {
         let pem = generate_test_key_pem();
-        let minter = C4mMinter::new(&pem, "test-issuer".into(), "test-audience".into(), 3600).unwrap();
+        let minter =
+            C4mMinter::new(&pem, "test-issuer".into(), "test-audience".into(), 3600).unwrap();
 
         let ns_parts: Vec<&[u8]> = vec![b"mocha", b"room1"];
-        let result = minter.mint(&MintRequest {
-            subject: "user@test",
-            namespace_parts: &ns_parts,
-            role: TokenRole::Publisher,
-            lifetime_secs: 300,
-        }).unwrap();
+        let result = minter
+            .mint(&MintRequest {
+                subject: "user@test",
+                namespace_parts: &ns_parts,
+                role: TokenRole::Publisher,
+                lifetime_secs: 300,
+            })
+            .unwrap();
 
         assert_eq!(result.token_type, C4M_TOKEN_TYPE);
         assert_eq!(result.expires_in, 300);
@@ -469,12 +477,14 @@ mod tests {
         let minter = C4mMinter::new(&pem, "issuer".into(), "audience".into(), 3600).unwrap();
 
         let ns_parts: Vec<&[u8]> = vec![b"chat", b"general"];
-        let result = minter.mint(&MintRequest {
-            subject: "sub@test",
-            namespace_parts: &ns_parts,
-            role: TokenRole::Subscriber,
-            lifetime_secs: 0, // should use default
-        }).unwrap();
+        let result = minter
+            .mint(&MintRequest {
+                subject: "sub@test",
+                namespace_parts: &ns_parts,
+                role: TokenRole::Subscriber,
+                lifetime_secs: 0, // should use default
+            })
+            .unwrap();
 
         assert_eq!(result.expires_in, 3600, "zero lifetime should use default");
     }
@@ -485,12 +495,14 @@ mod tests {
         let minter = C4mMinter::new(&pem, "i".into(), "a".into(), 60).unwrap();
 
         let ns_parts: Vec<&[u8]> = vec![b"ns"];
-        let result = minter.mint(&MintRequest {
-            subject: "u",
-            namespace_parts: &ns_parts,
-            role: TokenRole::PubSub,
-            lifetime_secs: 60,
-        }).unwrap();
+        let result = minter
+            .mint(&MintRequest {
+                subject: "u",
+                namespace_parts: &ns_parts,
+                role: TokenRole::PubSub,
+                lifetime_secs: 60,
+            })
+            .unwrap();
 
         // Decode and check scopes in the payload
         let cose_bytes = URL_SAFE_NO_PAD.decode(&result.token).unwrap();
@@ -504,12 +516,19 @@ mod tests {
         };
 
         let payload: Value = ciborium::de::from_reader(&payload_bytes[..]).unwrap();
-        let map = match payload { Value::Map(m) => m, _ => panic!("not a map") };
-        let (_, scope_val) = map.iter()
+        let map = match payload {
+            Value::Map(m) => m,
+            _ => panic!("not a map"),
+        };
+        let (_, scope_val) = map
+            .iter()
             .find(|(k, _)| *k == Value::Integer(CLAIM_MOQT.into()))
             .expect("missing MOQT claim");
 
-        let scope_bytes = match scope_val { Value::Bytes(b) => b, _ => panic!("not bytes") };
+        let scope_bytes = match scope_val {
+            Value::Bytes(b) => b,
+            _ => panic!("not bytes"),
+        };
         let scopes: Value = ciborium::de::from_reader(&scope_bytes[..]).unwrap();
         match scopes {
             // ClientSetup + Publisher + Subscriber = 3 scopes

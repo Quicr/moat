@@ -85,7 +85,12 @@ fn bench_session_token_verify_invalid(c: &mut Criterion) {
     let token = session_token::create(user_id, secret);
 
     c.bench_function("session_token_verify_invalid_secret", |b| {
-        b.iter(|| session_token::verify(black_box(&token), black_box("wrong-secret-entirely-different")))
+        b.iter(|| {
+            session_token::verify(
+                black_box(&token),
+                black_box("wrong-secret-entirely-different"),
+            )
+        })
     });
 }
 
@@ -98,9 +103,7 @@ fn bench_canonical_namespace_short(c: &mut Criterion) {
 }
 
 fn bench_canonical_namespace_deep(c: &mut Criterion) {
-    let parts: Vec<&[u8]> = vec![
-        b"mocha", b"conference", b"2024", b"track-a", b"session-42",
-    ];
+    let parts: Vec<&[u8]> = vec![b"mocha", b"conference", b"2024", b"track-a", b"session-42"];
 
     c.bench_function("canonical_namespace_deep", |b| {
         b.iter(|| canonical_namespace(black_box(&parts)))

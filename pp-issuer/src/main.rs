@@ -5,7 +5,7 @@
 //! main Moat service which acts as the Privacy Pass attester.
 
 use std::net::SocketAddr;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use axum::body::Bytes;
@@ -16,10 +16,8 @@ use axum::routing::{get, post};
 use axum::Router;
 use base64::engine::general_purpose::{STANDARD, URL_SAFE_NO_PAD};
 use base64::Engine;
-use blind_rsa_signatures::pbrsa::{
-    DefaultRng, PartiallyBlindKeyPair, PartiallyBlindSecretKey,
-};
-use blind_rsa_signatures::{Deterministic, KeyPair, PublicKey, SecretKey, Sha384, PSSZero};
+use blind_rsa_signatures::pbrsa::{DefaultRng, PartiallyBlindKeyPair, PartiallyBlindSecretKey};
+use blind_rsa_signatures::{Deterministic, KeyPair, PSSZero, PublicKey, SecretKey, Sha384};
 use clap::Parser;
 use ed25519_dalek::{Verifier, VerifyingKey};
 use sha2::{Digest, Sha256};
@@ -69,8 +67,7 @@ struct IssuerState {
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "info".into()),
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()),
         )
         .init();
 
@@ -129,7 +126,7 @@ fn load_ed25519_public_key(pem: &str) -> anyhow::Result<VerifyingKey> {
         .map_err(|e| anyhow::anyhow!("failed to load attester Ed25519 key: {e}"))
 }
 
-fn load_or_generate_keys(key_dir: &PathBuf) -> anyhow::Result<IssuerState> {
+fn load_or_generate_keys(key_dir: &Path) -> anyhow::Result<IssuerState> {
     let brsa_path = key_dir.join("blind-rsa.pem");
     let pbrs_path = key_dir.join("pbrs.pem");
 
@@ -262,15 +259,18 @@ fn verify_http_signature(
     body: &[u8],
     vk: &VerifyingKey,
 ) -> Result<(), String> {
-    let sig_input = headers.get("signature-input")
+    let sig_input = headers
+        .get("signature-input")
         .and_then(|v| v.to_str().ok())
         .ok_or("missing Signature-Input header")?;
 
-    let signature_header = headers.get("signature")
+    let signature_header = headers
+        .get("signature")
         .and_then(|v| v.to_str().ok())
         .ok_or("missing Signature header")?;
 
-    let content_digest = headers.get("content-digest")
+    let content_digest = headers
+        .get("content-digest")
         .and_then(|v| v.to_str().ok())
         .ok_or("missing Content-Digest header")?;
 
@@ -282,7 +282,9 @@ fn verify_http_signature(
     }
 
     // Build signature base per RFC 9421 §2.5
-    let params = sig_input.strip_prefix("sig1=").ok_or("bad Signature-Input format")?;
+    let params = sig_input
+        .strip_prefix("sig1=")
+        .ok_or("bad Signature-Input format")?;
     let sig_base = format!(
         "\"content-digest\": {}\n\"@signature-params\": {}",
         content_digest, params
@@ -293,7 +295,9 @@ fn verify_http_signature(
         .strip_prefix("sig1=:")
         .and_then(|s| s.strip_suffix(':'))
         .ok_or("bad Signature header format")?;
-    let sig_bytes = STANDARD.decode(sig_b64).map_err(|e| format!("bad signature encoding: {e}"))?;
+    let sig_bytes = STANDARD
+        .decode(sig_b64)
+        .map_err(|e| format!("bad signature encoding: {e}"))?;
 
     let signature = ed25519_dalek::Signature::from_slice(&sig_bytes)
         .map_err(|e| format!("invalid signature: {e}"))?;
@@ -302,10 +306,7 @@ fn verify_http_signature(
         .map_err(|_| "signature verification failed".to_string())
 }
 
-fn sign_blind_rsa(
-    state: &IssuerState,
-    body: &[u8],
-) -> Result<Response, (StatusCode, String)> {
+fn sign_blind_rsa(state: &IssuerState, body: &[u8]) -> Result<Response, (StatusCode, String)> {
     // TokenRequest: token_type(2) + truncated_token_key_id(1) + blinded_msg(Nk=256)
     if body.len() != 3 + NK {
         return Err((
@@ -337,13 +338,15 @@ fn sign_blind_rsa(
         .status(StatusCode::OK)
         .header("Content-Type", "application/private-token-response")
         .body(axum::body::Body::from(blind_sig.0))
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("response build failed: {e}")))
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("response build failed: {e}"),
+            )
+        })
 }
 
-fn sign_pbrs(
-    state: &IssuerState,
-    body: &[u8],
-) -> Result<Response, (StatusCode, String)> {
+fn sign_pbrs(state: &IssuerState, body: &[u8]) -> Result<Response, (StatusCode, String)> {
     // ExtendedTokenRequest:
     //   token_type(2) + truncated_token_key_id(1) + blinded_msg(Nk=256)
     //   + extensions_length(2) + extensions_data(variable)
@@ -409,5 +412,10 @@ fn sign_pbrs(
         .status(StatusCode::OK)
         .header("Content-Type", "application/private-token-response")
         .body(axum::body::Body::from(blind_sig.0))
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, format!("response build failed: {e}")))
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("response build failed: {e}"),
+            )
+        })
 }

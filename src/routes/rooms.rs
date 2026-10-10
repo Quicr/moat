@@ -49,7 +49,6 @@ pub async fn create_room(
     AuthUser(user_id): AuthUser,
     Json(body): Json<CreateRoomRequest>,
 ) -> Result<(StatusCode, Json<db::Room>), AppError> {
-
     // Validate room name
     let name = body.name.trim();
     if name.is_empty() || name.len() > 256 {
@@ -94,7 +93,7 @@ pub async fn list_rooms(
     State(state): State<Arc<AppState>>,
     Query(query): Query<ListRoomsQuery>,
 ) -> Result<Json<Vec<db::Room>>, AppError> {
-    let limit = query.limit.unwrap_or(100).min(1000).max(1);
+    let limit = query.limit.unwrap_or(100).clamp(1, 1000);
     let offset = query.offset.unwrap_or(0).max(0);
     let rooms = db::list_rooms(state.db.pool(), limit, offset).await?;
     Ok(Json(rooms))
@@ -231,11 +230,23 @@ mod tests {
     fn invalid_namespaces() {
         assert!(!is_valid_namespace(""), "empty");
         assert!(!is_valid_namespace("room\ttab"), "tab is a control char");
-        assert!(!is_valid_namespace("room\nline"), "newline is a control char");
+        assert!(
+            !is_valid_namespace("room\nline"),
+            "newline is a control char"
+        );
         assert!(!is_valid_namespace("room\0null"), "null byte");
-        assert!(!is_valid_namespace("/leading"), "leading slash = empty first segment");
-        assert!(!is_valid_namespace("trailing/"), "trailing slash = empty last segment");
-        assert!(!is_valid_namespace("a//b"), "double slash = empty middle segment");
+        assert!(
+            !is_valid_namespace("/leading"),
+            "leading slash = empty first segment"
+        );
+        assert!(
+            !is_valid_namespace("trailing/"),
+            "trailing slash = empty last segment"
+        );
+        assert!(
+            !is_valid_namespace("a//b"),
+            "double slash = empty middle segment"
+        );
     }
 
     #[test]

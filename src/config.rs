@@ -38,19 +38,35 @@ pub struct Config {
     pub session_secret: String,
 
     /// Base URL for generating invite links (e.g. https://chat.mocha-net.dev)
-    #[arg(long, env = "MOAT_BASE_URL", default_value = "https://chat.mocha-net.dev")]
+    #[arg(
+        long,
+        env = "MOAT_BASE_URL",
+        default_value = "https://chat.mocha-net.dev"
+    )]
     pub base_url: String,
 
     /// Privacy Pass issuer name (for TokenChallenge construction).
-    #[arg(long, env = "MOAT_PP_ISSUER_NAME", default_value = "pat.issuer.mocha-net.dev")]
+    #[arg(
+        long,
+        env = "MOAT_PP_ISSUER_NAME",
+        default_value = "pat.issuer.mocha-net.dev"
+    )]
     pub pp_issuer_name: String,
 
     /// Privacy Pass issuer directory URL (to fetch public keys).
-    #[arg(long, env = "MOAT_PP_ISSUER_URL", default_value = "https://pat.issuer.mocha-net.dev")]
+    #[arg(
+        long,
+        env = "MOAT_PP_ISSUER_URL",
+        default_value = "https://pat.issuer.mocha-net.dev"
+    )]
     pub pp_issuer_url: String,
 
     /// Privacy Pass origin name (relay hostname for challenge scope).
-    #[arg(long, env = "MOAT_PP_ORIGIN_NAME", default_value = "relay.mocha-net.dev")]
+    #[arg(
+        long,
+        env = "MOAT_PP_ORIGIN_NAME",
+        default_value = "relay.mocha-net.dev"
+    )]
     pub pp_origin_name: String,
 
     /// Path to Ed25519 private key PEM for signing token requests to the issuer (RFC 9421).

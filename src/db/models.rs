@@ -74,16 +74,34 @@ mod tests {
 
     #[test]
     fn room_visibility_serializes_lowercase() {
-        assert_eq!(serde_json::to_string(&RoomVisibility::Public).unwrap(), "\"public\"");
-        assert_eq!(serde_json::to_string(&RoomVisibility::Authenticated).unwrap(), "\"authenticated\"");
-        assert_eq!(serde_json::to_string(&RoomVisibility::Private).unwrap(), "\"private\"");
+        assert_eq!(
+            serde_json::to_string(&RoomVisibility::Public).unwrap(),
+            "\"public\""
+        );
+        assert_eq!(
+            serde_json::to_string(&RoomVisibility::Authenticated).unwrap(),
+            "\"authenticated\""
+        );
+        assert_eq!(
+            serde_json::to_string(&RoomVisibility::Private).unwrap(),
+            "\"private\""
+        );
     }
 
     #[test]
     fn room_visibility_deserializes_lowercase() {
-        assert_eq!(serde_json::from_str::<RoomVisibility>("\"public\"").unwrap(), RoomVisibility::Public);
-        assert_eq!(serde_json::from_str::<RoomVisibility>("\"authenticated\"").unwrap(), RoomVisibility::Authenticated);
-        assert_eq!(serde_json::from_str::<RoomVisibility>("\"private\"").unwrap(), RoomVisibility::Private);
+        assert_eq!(
+            serde_json::from_str::<RoomVisibility>("\"public\"").unwrap(),
+            RoomVisibility::Public
+        );
+        assert_eq!(
+            serde_json::from_str::<RoomVisibility>("\"authenticated\"").unwrap(),
+            RoomVisibility::Authenticated
+        );
+        assert_eq!(
+            serde_json::from_str::<RoomVisibility>("\"private\"").unwrap(),
+            RoomVisibility::Private
+        );
     }
 
     #[test]
@@ -93,7 +111,11 @@ mod tests {
 
     #[test]
     fn room_visibility_round_trip() {
-        for vis in [RoomVisibility::Public, RoomVisibility::Authenticated, RoomVisibility::Private] {
+        for vis in [
+            RoomVisibility::Public,
+            RoomVisibility::Authenticated,
+            RoomVisibility::Private,
+        ] {
             let json = serde_json::to_string(&vis).unwrap();
             let back: RoomVisibility = serde_json::from_str(&json).unwrap();
             assert_eq!(vis, back);
@@ -104,16 +126,34 @@ mod tests {
 
     #[test]
     fn member_role_serializes_lowercase() {
-        assert_eq!(serde_json::to_string(&MemberRole::Admin).unwrap(), "\"admin\"");
-        assert_eq!(serde_json::to_string(&MemberRole::Publisher).unwrap(), "\"publisher\"");
-        assert_eq!(serde_json::to_string(&MemberRole::Subscriber).unwrap(), "\"subscriber\"");
+        assert_eq!(
+            serde_json::to_string(&MemberRole::Admin).unwrap(),
+            "\"admin\""
+        );
+        assert_eq!(
+            serde_json::to_string(&MemberRole::Publisher).unwrap(),
+            "\"publisher\""
+        );
+        assert_eq!(
+            serde_json::to_string(&MemberRole::Subscriber).unwrap(),
+            "\"subscriber\""
+        );
     }
 
     #[test]
     fn member_role_deserializes_lowercase() {
-        assert_eq!(serde_json::from_str::<MemberRole>("\"admin\"").unwrap(), MemberRole::Admin);
-        assert_eq!(serde_json::from_str::<MemberRole>("\"publisher\"").unwrap(), MemberRole::Publisher);
-        assert_eq!(serde_json::from_str::<MemberRole>("\"subscriber\"").unwrap(), MemberRole::Subscriber);
+        assert_eq!(
+            serde_json::from_str::<MemberRole>("\"admin\"").unwrap(),
+            MemberRole::Admin
+        );
+        assert_eq!(
+            serde_json::from_str::<MemberRole>("\"publisher\"").unwrap(),
+            MemberRole::Publisher
+        );
+        assert_eq!(
+            serde_json::from_str::<MemberRole>("\"subscriber\"").unwrap(),
+            MemberRole::Subscriber
+        );
     }
 
     #[test]
@@ -123,7 +163,11 @@ mod tests {
 
     #[test]
     fn member_role_round_trip() {
-        for role in [MemberRole::Admin, MemberRole::Publisher, MemberRole::Subscriber] {
+        for role in [
+            MemberRole::Admin,
+            MemberRole::Publisher,
+            MemberRole::Subscriber,
+        ] {
             let json = serde_json::to_string(&role).unwrap();
             let back: MemberRole = serde_json::from_str(&json).unwrap();
             assert_eq!(role, back);

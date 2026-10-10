@@ -8,18 +8,21 @@ pub async fn index() -> Html<&'static str> {
     Html(INDEX_HTML)
 }
 
-pub async fn app_js() -> ([(axum::http::header::HeaderName, &'static str); 1], &'static str) {
+pub async fn app_js() -> (
+    [(axum::http::header::HeaderName, &'static str); 1],
+    &'static str,
+) {
     (
         [(axum::http::header::CONTENT_TYPE, "application/javascript")],
         APP_JS,
     )
 }
 
-pub async fn style_css() -> ([(axum::http::header::HeaderName, &'static str); 1], &'static str) {
-    (
-        [(axum::http::header::CONTENT_TYPE, "text/css")],
-        STYLE_CSS,
-    )
+pub async fn style_css() -> (
+    [(axum::http::header::HeaderName, &'static str); 1],
+    &'static str,
+) {
+    ([(axum::http::header::CONTENT_TYPE, "text/css")], STYLE_CSS)
 }
 
 const INDEX_HTML: &str = r#"<!DOCTYPE html>

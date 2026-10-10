@@ -59,7 +59,6 @@ pub async fn mint_token(
     AuthUser(user_id): AuthUser,
     Json(body): Json<MintTokenRequest>,
 ) -> Result<Json<MintTokenResponse>, AppError> {
-
     let room = get_room_by_id_or_name(state.db.pool(), &body.room_id).await?;
 
     // Look up user once for both visibility check and token subject
@@ -383,9 +382,18 @@ mod tests {
 
     #[test]
     fn token_role_deserializes_lowercase() {
-        assert_eq!(serde_json::from_str::<TokenRole>("\"publisher\"").unwrap(), TokenRole::Publisher);
-        assert_eq!(serde_json::from_str::<TokenRole>("\"subscriber\"").unwrap(), TokenRole::Subscriber);
-        assert_eq!(serde_json::from_str::<TokenRole>("\"pubsub\"").unwrap(), TokenRole::PubSub);
+        assert_eq!(
+            serde_json::from_str::<TokenRole>("\"publisher\"").unwrap(),
+            TokenRole::Publisher
+        );
+        assert_eq!(
+            serde_json::from_str::<TokenRole>("\"subscriber\"").unwrap(),
+            TokenRole::Subscriber
+        );
+        assert_eq!(
+            serde_json::from_str::<TokenRole>("\"pubsub\"").unwrap(),
+            TokenRole::PubSub
+        );
     }
 
     #[test]

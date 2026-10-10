@@ -53,7 +53,6 @@ pub async fn create_invite(
     AuthUser(user_id): AuthUser,
     Json(body): Json<CreateInviteRequest>,
 ) -> Result<(StatusCode, Json<InviteResponse>), AppError> {
-
     let room = db::get_room_by_id(state.db.pool(), room_id)
         .await?
         .ok_or_else(|| AppError::NotFound("room not found".into()))?;
@@ -79,13 +78,16 @@ pub async fn create_invite(
     .await?;
 
     let base_url = &state.config.base_url;
-    Ok((StatusCode::CREATED, Json(InviteResponse {
-        url: format!("{}/join/{}", base_url, invite.code),
-        code: invite.code,
-        room_name: room.name,
-        expires_at: invite.expires_at.map(|t| t.timestamp()),
-        max_uses: invite.max_uses,
-    })))
+    Ok((
+        StatusCode::CREATED,
+        Json(InviteResponse {
+            url: format!("{}/join/{}", base_url, invite.code),
+            code: invite.code,
+            room_name: room.name,
+            expires_at: invite.expires_at.map(|t| t.timestamp()),
+            max_uses: invite.max_uses,
+        }),
+    ))
 }
 
 #[derive(Serialize, ToSchema)]
@@ -113,7 +115,6 @@ pub async fn redeem_invite(
     Path(code): Path<String>,
     AuthUser(user_id): AuthUser,
 ) -> Result<Json<RedeemResponse>, AppError> {
-
     let invite = db::get_invite_by_code(state.db.pool(), &code)
         .await?
         .ok_or_else(|| AppError::NotFound("invite link not found or expired".into()))?;

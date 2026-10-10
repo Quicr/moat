@@ -19,7 +19,6 @@ use utoipa::ToSchema;
 use crate::error::AppError;
 use crate::AppState;
 
-const TOKEN_TYPE_BLIND_RSA: u16 = 0x0002;
 const TOKEN_TYPE_PARTIALLY_BLIND_RSA: u16 = 0xda7a;
 const EXTENSION_TYPE_MOQ_ACTIONS: u16 = 0x0001;
 
@@ -64,7 +63,8 @@ pub async fn challenge(
     rand::rng().fill_bytes(&mut redemption_context);
 
     // Build TokenChallenge per RFC 9578 §2.1
-    let mut challenge = Vec::with_capacity(2 + 2 + issuer_name.len() + 1 + 32 + 2 + origin_info.len());
+    let mut challenge =
+        Vec::with_capacity(2 + 2 + issuer_name.len() + 1 + 32 + 2 + origin_info.len());
     challenge.extend_from_slice(&token_type.to_be_bytes());
     challenge.extend_from_slice(&(issuer_name.len() as u16).to_be_bytes());
     challenge.extend_from_slice(issuer_name);
@@ -74,12 +74,16 @@ pub async fn challenge(
     challenge.extend_from_slice(origin_info);
 
     // Fetch the appropriate issuer key using shared HTTP client
-    let issuer_key = fetch_issuer_key(&state.http_client, &state.config.pp_issuer_url, token_type).await?;
+    let issuer_key =
+        fetch_issuer_key(&state.http_client, &state.config.pp_issuer_url, token_type).await?;
 
     // For PBRS, build extensions with MoQ action scope
     let extensions = if token_type == TOKEN_TYPE_PARTIALLY_BLIND_RSA {
         let room_id = body.room_id.as_deref().unwrap_or("*");
-        if !room_id.chars().all(|c| c.is_alphanumeric() || c == '-' || c == '_' || c == '*') {
+        if !room_id
+            .chars()
+            .all(|c| c.is_alphanumeric() || c == '-' || c == '_' || c == '*')
+        {
             return Err(AppError::BadRequest("invalid room_id format".into()));
         }
         let ext_bytes = build_moq_extensions(room_id)?;
@@ -119,7 +123,11 @@ fn build_moq_extensions(room_id: &str) -> Result<Vec<u8>, AppError> {
     Ok(envelope)
 }
 
-async fn fetch_issuer_key(client: &reqwest::Client, issuer_url: &str, token_type: u16) -> Result<Vec<u8>, AppError> {
+async fn fetch_issuer_key(
+    client: &reqwest::Client,
+    issuer_url: &str,
+    token_type: u16,
+) -> Result<Vec<u8>, AppError> {
     let url = format!("{}/.well-known/private-token-issuer-directory", issuer_url);
     let res = client
         .get(&url)
@@ -232,7 +240,11 @@ mod tests {
         // Envelope starts with 2-byte total length
         assert!(ext.len() > 2);
         let total_len = u16::from_be_bytes([ext[0], ext[1]]) as usize;
-        assert_eq!(total_len, ext.len() - 2, "envelope length should match remaining bytes");
+        assert_eq!(
+            total_len,
+            ext.len() - 2,
+            "envelope length should match remaining bytes"
+        );
     }
 
     #[test]

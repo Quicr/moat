@@ -75,19 +75,14 @@ pub async fn guest_login(
 ) -> Result<Json<AuthResponse>, AppError> {
     let name = body.display_name.trim().to_string();
     if name.is_empty() || name.len() > 64 {
-        return Err(AppError::BadRequest("display_name must be 1-64 characters".into()));
+        return Err(AppError::BadRequest(
+            "display_name must be 1-64 characters".into(),
+        ));
     }
 
     let (email, _, subject) = generate_guest_identity();
 
-    let user = db::upsert_user(
-        state.db.pool(),
-        &email,
-        "guest",
-        &subject,
-        Some(&name),
-    )
-    .await?;
+    let user = db::upsert_user(state.db.pool(), &email, "guest", &subject, Some(&name)).await?;
 
     let session_token = create_session_token(user.id, &state.config.session_secret);
 
@@ -196,9 +191,7 @@ pub fn verify_session_token(token: &str, secret: &str) -> Option<uuid::Uuid> {
     mac.verify_slice(&signature_bytes).ok()?;
 
     // Parse "user_id:timestamp" and validate expiry
-    let mut parts_iter = payload.splitn(2, ':');
-    let user_id_str = parts_iter.next()?;
-    let timestamp_str = parts_iter.next()?;
+    let (user_id_str, timestamp_str) = payload.split_once(':')?;
     let issued_at: i64 = timestamp_str.parse().ok()?;
     let now = chrono::Utc::now().timestamp();
     if now - issued_at > SESSION_TOKEN_MAX_AGE_SECS {
@@ -236,7 +229,11 @@ mod tests {
         let mut token = create_session_token(user_id, TEST_SECRET);
         // Flip a character in the middle of the token
         let mid = token.len() / 2;
-        let replacement = if token.as_bytes()[mid] == b'A' { 'B' } else { 'A' };
+        let replacement = if token.as_bytes()[mid] == b'A' {
+            'B'
+        } else {
+            'A'
+        };
         token.replace_range(mid..mid + 1, &replacement.to_string());
         let recovered = verify_session_token(&token, TEST_SECRET);
         assert_eq!(recovered, None);
@@ -278,11 +275,23 @@ mod tests {
     #[test]
     fn guest_identity_format() {
         let (email, display_name, subject) = generate_guest_identity();
-        assert!(email.starts_with("guest-"), "email should start with guest-");
-        assert!(email.ends_with("@moat.local"), "email should end with @moat.local");
-        assert!(display_name.starts_with("Guest-"), "display_name should start with Guest-");
+        assert!(
+            email.starts_with("guest-"),
+            "email should start with guest-"
+        );
+        assert!(
+            email.ends_with("@moat.local"),
+            "email should end with @moat.local"
+        );
+        assert!(
+            display_name.starts_with("Guest-"),
+            "display_name should start with Guest-"
+        );
         // Subject should be a valid UUID
-        assert!(Uuid::parse_str(&subject).is_ok(), "subject should be a valid UUID");
+        assert!(
+            Uuid::parse_str(&subject).is_ok(),
+            "subject should be a valid UUID"
+        );
     }
 
     #[test]
@@ -353,9 +362,7 @@ mod tests {
         // Instead, test the header logic inline:
 
         // No Authorization header
-        let auth = headers
-            .get("authorization")
-            .and_then(|v| v.to_str().ok());
+        let auth = headers.get("authorization").and_then(|v| v.to_str().ok());
         assert!(auth.is_none());
     }
 

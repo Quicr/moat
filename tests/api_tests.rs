@@ -40,8 +40,14 @@ async fn guest_login_with_valid_name() {
 
     assert_eq!(resp.status(), 200);
     let body: serde_json::Value = resp.json().await.unwrap();
-    assert!(body["user_id"].is_string(), "response should contain user_id");
-    assert!(body["session_token"].is_string(), "response should contain session_token");
+    assert!(
+        body["user_id"].is_string(),
+        "response should contain user_id"
+    );
+    assert!(
+        body["session_token"].is_string(),
+        "response should contain session_token"
+    );
     assert_eq!(body["provider"], "guest");
 }
 
@@ -88,7 +94,11 @@ async fn create_room_requires_auth() {
         .await
         .expect("failed to reach server");
 
-    assert_eq!(resp.status(), 401, "creating a room without auth should return 401");
+    assert_eq!(
+        resp.status(),
+        401,
+        "creating a room without auth should return 401"
+    );
 }
 
 #[tokio::test]
@@ -104,7 +114,11 @@ async fn mint_token_requires_auth() {
         .await
         .expect("failed to reach server");
 
-    assert_eq!(resp.status(), 401, "minting a token without auth should return 401");
+    assert_eq!(
+        resp.status(),
+        401,
+        "minting a token without auth should return 401"
+    );
 }
 
 #[tokio::test]
