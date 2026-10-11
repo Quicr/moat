@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright (c) 2025 Cisco
+// SPDX-License-Identifier: BSD-2-Clause
+
 //! C4M (CAT4MoQT) token minter.
 //!
 //! Produces COSE_Sign1 tokens with ES256 signatures carrying MoQT scopes.

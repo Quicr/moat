@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright (c) 2025 Cisco
+// SPDX-License-Identifier: BSD-2-Clause
+
 //! Moat — MoQ Auth Token Service.
 //!
 //! Authentication, room management, and scoped token minting for

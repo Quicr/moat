@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright (c) 2025 Cisco
+// SPDX-License-Identifier: BSD-2-Clause
+
 use axum::response::Html;
 
 pub async fn landing() -> Html<&'static str> {

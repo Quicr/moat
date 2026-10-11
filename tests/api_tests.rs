@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright (c) 2025 Cisco
+// SPDX-License-Identifier: BSD-2-Clause
+
 //! Integration tests for the Moat API.
 //!
 //! These tests require a running Moat server with a PostgreSQL database.

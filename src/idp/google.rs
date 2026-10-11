@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright (c) 2025 Cisco
+// SPDX-License-Identifier: BSD-2-Clause
+
 //! Google OAuth2 identity provider.
 //!
 //! Verifies Google ID tokens (JWTs) by fetching Google's public keys

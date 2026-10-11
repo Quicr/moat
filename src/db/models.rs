@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright (c) 2025 Cisco
+// SPDX-License-Identifier: BSD-2-Clause
+
 //! Database model types for users, rooms, members, and invites.
 
 use chrono::{DateTime, Utc};

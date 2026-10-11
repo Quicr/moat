@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright (c) 2025 Cisco
+// SPDX-License-Identifier: BSD-2-Clause
+
 //! Privacy Pass challenge and token request proxy (RFC 9578).
 //!
 //! Supports Blind RSA (0x0002) and Partially Blind RSA (0xda7a) token types.

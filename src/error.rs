@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright (c) 2025 Cisco
+// SPDX-License-Identifier: BSD-2-Clause
+
 //! Application error types with HTTP status code mapping.
 //!
 //! Internal errors and database errors are logged server-side but

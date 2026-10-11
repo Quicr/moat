@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright (c) 2025 Cisco
+// SPDX-License-Identifier: BSD-2-Clause
+
 //! Room management routes.
 //!
 //! Provides CRUD operations for rooms (namespace containers) and

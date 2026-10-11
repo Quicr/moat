@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright (c) 2025 Cisco
+// SPDX-License-Identifier: BSD-2-Clause
+
 //! Token minting routes.
 //!
 //! Provides authenticated and anonymous token minting for MoQ relay access.

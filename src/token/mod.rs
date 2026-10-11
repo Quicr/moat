@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright (c) 2025 Cisco
+// SPDX-License-Identifier: BSD-2-Clause
+
 //! Token minting abstraction layer.
 //!
 //! Defines the `TokenMinter` trait and `MinterRegistry` for pluggable token

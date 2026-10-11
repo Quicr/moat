@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright (c) 2025 Cisco
+// SPDX-License-Identifier: BSD-2-Clause
+
 //! Database layer for Moat.
 //!
 //! Provides PostgreSQL connection pooling, migrations, and query functions

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright (c) 2025 Cisco
+// SPDX-License-Identifier: BSD-2-Clause
+
 pub(crate) mod auth;
 pub(crate) mod invites;
 pub(crate) mod privacypass;

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright (c) 2025 Cisco
+// SPDX-License-Identifier: BSD-2-Clause
+
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 // Re-implement the public helpers inline since we can't access private fns from benchmarks.
