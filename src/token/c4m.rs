@@ -6,7 +6,7 @@
 
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine;
-use cat_token::{CatTokenBuilder, CryptographicAlgorithm, Es256Algorithm};
+use cat_token::{CatToken, CryptographicAlgorithm, Es256Algorithm};
 use ciborium::Value;
 use p256::ecdsa::{signature::Signer, Signature, SigningKey};
 use p256::pkcs8::DecodePrivateKey;
@@ -77,12 +77,11 @@ impl TokenMinter for C4mMinter {
         }
 
         // Build base token (without MoQT scopes — we inject those manually)
-        let token = CatTokenBuilder::new()
-            .issuer(&self.issuer)
-            .single_audience(&self.audience)
-            .subject(request.subject)
-            .expires_in(lifetime as i64)
-            .build();
+        let token = CatToken::new()
+            .with_issuer(&self.issuer)
+            .with_single_audience(&self.audience)
+            .with_subject(request.subject)
+            .with_expires_in(lifetime as i64);
 
         let token_string = encode_cose_sign1(
             &token,
@@ -126,7 +125,7 @@ fn canonical_namespace(parts: &[&[u8]]) -> Vec<u8> {
 
 /// Encode a CatToken + MoQT scopes as base64url(COSE_Sign1 CBOR).
 fn encode_cose_sign1(
-    token: &cat_token::CatToken,
+    token: &CatToken,
     algorithm: &Es256Algorithm,
     raw_key: &SigningKey,
     moqt_scopes: &[Value],
@@ -350,12 +349,11 @@ mod tests {
     fn build_payload_contains_moqt_scopes_key() {
         use cat_token::Cwt;
 
-        let token = CatTokenBuilder::new()
-            .issuer("test-issuer")
-            .single_audience("test-audience")
-            .subject("user@test")
-            .expires_in(3600)
-            .build();
+        let token = CatToken::new()
+            .with_issuer("test-issuer")
+            .with_single_audience("test-audience")
+            .with_subject("user@test")
+            .with_expires_in(3600);
 
         let sk = SigningKey::random(&mut p256::elliptic_curve::rand_core::OsRng);
         let vk = *sk.verifying_key();
@@ -386,12 +384,11 @@ mod tests {
     fn build_payload_moqt_scopes_are_valid_cbor() {
         use cat_token::Cwt;
 
-        let token = CatTokenBuilder::new()
-            .issuer("issuer")
-            .single_audience("audience")
-            .subject("sub")
-            .expires_in(60)
-            .build();
+        let token = CatToken::new()
+            .with_issuer("issuer")
+            .with_single_audience("audience")
+            .with_subject("sub")
+            .with_expires_in(60);
 
         let sk = SigningKey::random(&mut p256::elliptic_curve::rand_core::OsRng);
         let vk = *sk.verifying_key();
