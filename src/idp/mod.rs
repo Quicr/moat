@@ -21,6 +21,7 @@ pub struct UserIdentity {
 }
 
 #[async_trait]
+#[allow(clippy::double_must_use)]
 pub trait IdpVerifier: Send + Sync {
     async fn verify(&self, token: &str) -> anyhow::Result<UserIdentity>;
     fn provider_name(&self) -> &'static str;

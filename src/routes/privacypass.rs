@@ -19,6 +19,8 @@ use utoipa::ToSchema;
 use crate::error::AppError;
 use crate::AppState;
 
+#[cfg(test)]
+const TOKEN_TYPE_BLIND_RSA: u16 = 0x0002;
 const TOKEN_TYPE_PARTIALLY_BLIND_RSA: u16 = 0xda7a;
 const EXTENSION_TYPE_MOQ_ACTIONS: u16 = 0x0001;
 
