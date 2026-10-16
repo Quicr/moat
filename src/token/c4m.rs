@@ -10,9 +10,7 @@
 //!
 //! Token type for SETUP AUTHORIZATION_TOKEN is 1 (c4m-01 §7.1.1).
 
-use cat_token::{
-    CatToken, Es256Algorithm, MoqtAction, MoqtScopeBuilder, encode_token_base64,
-};
+use cat_token::{encode_token_base64, CatToken, Es256Algorithm, MoqtAction, MoqtScopeBuilder};
 use p256::ecdsa::SigningKey;
 use p256::pkcs8::DecodePrivateKey;
 
@@ -143,8 +141,7 @@ mod tests {
     #[test]
     fn c4m_minter_produces_tagged_cose_sign1() {
         let pem = generate_test_key_pem();
-        let minter =
-            C4mMinter::new(&pem, "issuer".into(), "audience".into(), 3600).unwrap();
+        let minter = C4mMinter::new(&pem, "issuer".into(), "audience".into(), 3600).unwrap();
 
         let ns_parts: Vec<&[u8]> = vec![b"room"];
         let result = minter
@@ -167,7 +164,11 @@ mod tests {
                     // Signature should be raw r||s = 64 bytes
                     match &items[3] {
                         Value::Bytes(sig) => {
-                            assert_eq!(sig.len(), 64, "ES256 raw signature must be 64 bytes (r||s)");
+                            assert_eq!(
+                                sig.len(),
+                                64,
+                                "ES256 raw signature must be 64 bytes (r||s)"
+                            );
                         }
                         other => panic!("expected signature bytes, got {:?}", other),
                     }
@@ -181,8 +182,7 @@ mod tests {
     #[test]
     fn c4m_minter_uses_claim_key_327() {
         let pem = generate_test_key_pem();
-        let minter =
-            C4mMinter::new(&pem, "issuer".into(), "audience".into(), 3600).unwrap();
+        let minter = C4mMinter::new(&pem, "issuer".into(), "audience".into(), 3600).unwrap();
 
         let ns_parts: Vec<&[u8]> = vec![b"ns"];
         let result = minter
@@ -215,22 +215,23 @@ mod tests {
         };
 
         // MoQT scopes should be at claim key 327 (not 65000)
-        let has_327 = map
-            .iter()
-            .any(|(k, _)| *k == Value::Integer(327.into()));
-        let has_65000 = map
-            .iter()
-            .any(|(k, _)| *k == Value::Integer(65000.into()));
+        let has_327 = map.iter().any(|(k, _)| *k == Value::Integer(327.into()));
+        let has_65000 = map.iter().any(|(k, _)| *k == Value::Integer(65000.into()));
 
-        assert!(has_327, "payload should contain MoQT scopes at claim key 327");
-        assert!(!has_65000, "payload should NOT contain legacy claim key 65000");
+        assert!(
+            has_327,
+            "payload should contain MoQT scopes at claim key 327"
+        );
+        assert!(
+            !has_65000,
+            "payload should NOT contain legacy claim key 65000"
+        );
     }
 
     #[test]
     fn c4m_minter_moqt_scopes_are_inline_array() {
         let pem = generate_test_key_pem();
-        let minter =
-            C4mMinter::new(&pem, "issuer".into(), "audience".into(), 60).unwrap();
+        let minter = C4mMinter::new(&pem, "issuer".into(), "audience".into(), 60).unwrap();
 
         let ns_parts: Vec<&[u8]> = vec![b"test"];
         let result = minter
